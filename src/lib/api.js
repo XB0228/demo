@@ -1,61 +1,62 @@
-const API_BASE = import.meta.env.VITE_API_BASE || ''
+import { mockArticles, mockCategories, mockSiteConfig } from './mockData'
 
-async function request(url, options = {}) {
-  const res = await fetch(API_BASE + url, {
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-    ...options
-  })
-  if (!res.ok) {
-    throw new Error(`请求失败(${res.status})`)
-  }
-  const body = await res.json()
-  if (body && body.code !== 0) {
-    throw new Error(body.message || '请求失败')
-  }
-  return body.data
+/**
+ * 前端 mock 数据访问层。
+ *
+ * 本仓库不包含后端服务，原 `/api/*` 请求全部由本地 mock 数据替代。
+ * 保留与真实接口一致的异步调用方式，页面无需感知数据来源；
+ * 后续接入后台时，只需把这里的实现替换为 fetch 请求。
+ */
+
+const MOCK_DELAY = 180
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const clone = (value) => JSON.parse(JSON.stringify(value))
+
+async function resolveWith(value, delay = MOCK_DELAY) {
+  await wait(delay)
+  return clone(value)
 }
 
 export function fetchPublishedArticles(categoryId) {
-  const query = categoryId ? `?categoryId=${encodeURIComponent(categoryId)}` : ''
-  return request(`/api/public/articles${query}`)
+  if (!categoryId) return resolveWith(mockArticles)
+  const articles = mockArticles.filter(
+    (article) => String(article.categoryId) === String(categoryId)
+  )
+  return resolveWith(articles)
 }
 
-export function fetchArticle(id) {
-  return request(`/api/public/articles/${encodeURIComponent(id)}`)
+export async function fetchArticle(id) {
+  await wait(MOCK_DELAY)
+  const article = mockArticles.find((item) => String(item.id) === String(id))
+  if (!article) throw new Error('文章不存在')
+  return clone(article)
 }
 
 export function fetchCategories() {
-  return request('/api/public/categories')
+  return resolveWith(mockCategories)
 }
 
 export function fetchSiteConfig() {
-  return request('/api/public/site-config')
+  return resolveWith(mockSiteConfig)
 }
 
 /**
- * 提交「联系我们」咨询留言
+ * 提交「联系我们」咨询留言。
+ * 演示环境不写入后台，短暂延迟后直接返回模拟的成功结果。
  */
-export function submitContact(data) {
-  return request('/api/public/contact', {
-    method: 'POST',
-    body: JSON.stringify(data)
-  })
-}
-
-/**
- * 访问统计上报（fire-and-forget，静默失败，不影响页面体验）
- */
-export function trackVisit(pagePath, referer) {
-  try {
-    fetch(API_BASE + '/api/visits/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        pagePath,
-        referer: referer || document.referrer || ''
-      })
-    }).catch(() => {})
-  } catch {
-    /* ignore */
+export async function submitContact(data) {
+  await wait(600)
+  return {
+    id: `mock-contact-${Date.now()}`,
+    ...data,
+    submittedAt: new Date().toISOString()
   }
 }
+
+/**
+ * 访问统计上报。
+ * 演示环境没有统计后台，这里保持为空实现，避免产生外部请求。
+ */
+export function trackVisit() {}
