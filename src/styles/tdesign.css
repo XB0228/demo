@@ -1,0 +1,66 @@
+/*
+ * TDesign 适配层。
+ *
+ * 思路：TDesign 的颜色全部来自 CSS 变量（--td-*），因此这里只覆盖这些变量的值，
+ * 而不去和 TDesign 的选择器拼权重；同时保留站点自身的低权重 class 覆盖能力
+ * （如 .hero .button-ghost），从而做到“组件升级、外观不变”。
+ *
+ * 需要穿透 TDesign 子组件内部节点的规则，写在对应视图的 scoped 样式里（:deep()）。
+ */
+
+.t-button.button {
+  --td-text-color-primary: inherit;
+  --td-text-color-anti: inherit;
+  --td-bg-color-component: transparent;
+  --td-bg-color-component-hover: transparent;
+
+  height: auto;
+  font-family: inherit;
+  letter-spacing: inherit;
+  white-space: nowrap;
+  transition:
+    transform 0.2s var(--ease),
+    background 0.2s var(--ease),
+    color 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+
+.t-button.button .t-button__text {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* .button-primary -> TDesign theme="primary" */
+.t-button.button-primary {
+  --td-brand-color: var(--brand);
+  --td-brand-color-hover: #39d0ff;
+  --td-text-color-anti: var(--ink-950);
+}
+
+/* .button-dark -> TDesign theme="primary" + 深色变量 */
+.t-button.button-dark {
+  --td-brand-color: var(--ink-900);
+  --td-brand-color-hover: var(--ink-800);
+  --td-text-color-anti: var(--white);
+}
+
+/* .button-ghost -> TDesign theme="default"（透明底 + 细描边） */
+.t-button.button-ghost {
+  --td-bg-color-component: var(--ink-200);
+  --td-bg-color-component-hover: var(--brand-dark);
+  background-color: transparent;
+  color: var(--ink-800);
+}
+
+.t-button.button-ghost:hover,
+.t-button.button-ghost:focus-visible {
+  background-color: transparent;
+  color: var(--brand-dark);
+  border-color: var(--brand-dark);
+}
+
+/* TDesign 浮层沿用站点字体 */
+.t-popup__content {
+  font-family: var(--font-sans);
+}
