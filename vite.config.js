@@ -12,19 +12,10 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  // 纯前端演示项目，数据由 src/lib/mockData.js 提供，无需代理后台接口
   server: {
     port: 5173,
-    host: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:9001',
-        changeOrigin: true
-      },
-      '/uploads': {
-        target: 'http://localhost:9001',
-        changeOrigin: true
-      }
-    }
+    host: true
   },
   build: {
     outDir: 'dist',
